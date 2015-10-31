@@ -60,7 +60,7 @@ class CountDownClock {
             else {
                 $days = '';
                 if ($this->clock->getDaysLen() > 0) {
-                    $days = str_pad($interval->d, $this->clock->getDaysLen(), '0', STR_PAD_LEFT);
+                    $days = str_pad($interval->days, $this->clock->getDaysLen(), '0', STR_PAD_LEFT);
                 }
                 $text = $interval->format($days . $separator . '%H' . $separator . '%I' . $separator . '%S');
                 $text = (preg_match('/^[0-9]\:/', $text)) ? '0' . $text : $text;
@@ -96,14 +96,17 @@ class CountDownClock {
     }
 
     function imagettftextSp($image, $size, $angle, $x, $y, $color, $font, $text, $spacing = 0, $separator = null, $separatorSpacing = 0) {
-        if ($spacing == 0) {
+        if ($spacing == 0 && $separatorSpacing == 0) {
             imagettftext($image, $size, $angle, $x, $y, $color, $font, $text);
         } else {
+            $bbox = imagettfbbox($size, $angle, $font, $text);
+            $fixed = ($bbox[2] - $bbox[0]) / strlen($text);
             $temp_x = $x;
             for ($i = 0; $i < strlen($text); $i++) {
                 $bbox = imagettftext($image, $size, $angle, $temp_x, $y, $color, $font, $text[$i]);
                 $next = $i + 1 < strlen($text) ? $text[$i + 1] : null;
-                $temp_x += ($text[$i] == $separator || $next == $separator ? $separatorSpacing : $spacing) + ($bbox[2] - $bbox[0]);
+                $spacing = $text[$i] == $separator || $next == $separator ? $separatorSpacing : $spacing;
+                $temp_x += $spacing + $fixed;
             }
         }
     }
